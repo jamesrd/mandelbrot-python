@@ -8,8 +8,24 @@ import numpy as np
 from numpy import int32, uint
 
 "Settings"
-screen_x = 512
-screen_y = 256
+screen_x = 1024
+screen_y = 768
+max_iter = 100
+top_left = -1.5-1.25j
+bottom_right = 0.75+1.25j
+
+"calculations"
+h_step = (bottom_right.real - top_left.real) / screen_x
+v_step = (bottom_right.imag - top_left.imag) / screen_y
+
+"colors"
+color_black = (0,0,0)
+color_red = (255,0,0)
+color_green = (0,255,0)
+color_blue = (0,0,255)
+c_step1 = max_iter//3
+c_step2 = c_step1 * 2
+
 
 def show_array(array_img):
     screen = pg.display.set_mode(array_img.shape[:2], 0, 32)
@@ -26,11 +42,33 @@ def wait_click():
             pg.quit()
             raise SystemExit()
 
+def get_c(x, y):
+    return top_left + complex(x * h_step, y * v_step)
+
+def check_point(c):
+    i = 1
+    z = 0+0j+c
+    while i <= max_iter:
+        i = i + 1
+        z = (z*z)+c
+        if abs(z.real) > 2 or abs(z.imag) > 2:
+            return i
+
+    return i
+
 def calculate_point(x, y):
-    r = x%256
-    g = y%256
-    b = (x*y)%256
-    return (r,g,b)
+    c = get_c(x,y)
+    i = check_point(c)
+    return color_point(i)
+
+def color_point(i):
+    if i < c_step1:
+        return color_red        
+    if i < c_step2:
+        return color_green
+    elif i < max_iter:
+        return color_blue
+    return color_black
 
 def main():
     pg.init()
