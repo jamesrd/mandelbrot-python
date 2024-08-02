@@ -7,7 +7,7 @@ import mandelbrot as m
 "Settings"
 screen_x = 1024
 screen_y = 768
-max_iter = 150
+max_iter = 256
 m_center = -0.6+0j
 m_width = 1.8
 m_height = m_width * (screen_y/screen_x)
@@ -31,8 +31,9 @@ def zoom(mult):
     m_height = m_width * (screen_y/screen_x)
 
 def show_array(array_img):
-    screen = pg.display.set_mode(array_img.shape[:2], pg.HWSURFACE, 32)
-    surfarray.blit_array(screen, array_img)
+    screen = pg.display.set_mode(array_img.shape[:2], pg.HWSURFACE, 8)
+    surf =surfarray.make_surface(array_img)
+    screen.blit(surf, (0,0))
     pg.display.flip()
 
 def mouse_zoom(x, y):
