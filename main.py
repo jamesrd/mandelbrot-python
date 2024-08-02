@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame import surfarray
+import time
 
 import mandelbrot as m
 
@@ -12,7 +13,6 @@ m_width = 1.8
 m_height = m_width * (screen_y/screen_x)
 
 color_step = 255/(max_iter+1)
-print(color_step)
 
 def set_viewport():
     global top_left, bottom_right, h_step, v_step
@@ -23,8 +23,7 @@ def set_viewport():
 
 def recenter(x, y):
     global m_center
-    m_center = get_c(x,y)
-    print(m_center)
+    m_center = top_left + complex(x * h_step, y * v_step)
 
 def zoom(mult):
     global m_width, m_height, screen_y, screen_x
@@ -42,7 +41,6 @@ def mouse_zoom(x, y):
     render_mandelbrot()
 
 def mouse_reframe(start, end):
-    print(start,end)
     if abs(start[0]-end[0]) < 4:
         mouse_zoom(start[0], start[1])
         return
@@ -52,7 +50,6 @@ def mouse_reframe(start, end):
     m_height = m_width * (screen_y/screen_x)
     n_x = start[0] + ((end[0]-start[0])//2)
     n_y = start[1] + ((end[1]-start[1])//2)
-    print(n_x, n_y, m_width)
     recenter(n_x, n_y)
     render_mandelbrot()
 
@@ -77,18 +74,18 @@ def wait_click():
             zoom(1.5)
             render_mandelbrot()
         elif e.type == pg.KEYDOWN and e.key == pg.K_EQUALS:
-            print(e.key)
             zoom(0.75)
             render_mandelbrot()
         elif (e.type == pg.KEYDOWN and e.key == pg.K_q) or e.type == pg.QUIT:
             pg.quit()
             raise SystemExit()
-        elif e.type == pg.KEYDOWN:
-            print(e.key)
 
 def render_mandelbrot():
     set_viewport()
+    time_s = time.time()
     values = m.render_mandelbrot(screen_x, screen_y, max_iter, top_left, h_step, v_step)
+    time_e = time.time()
+    print("calc time: {}s".format(time_e-time_s))
     show_array(values)
 
 def main():

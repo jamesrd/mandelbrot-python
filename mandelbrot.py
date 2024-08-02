@@ -1,6 +1,4 @@
 import torch
-import os
-import time
 
 import numpy as np
 from numpy import int32, uint, uint8
@@ -26,12 +24,9 @@ def calculate_point(x, y, top_left, h_step, v_step, max_iter):
 
 def render_mandelbrot(screen_x, screen_y, max_iter, top_left, h_step, v_step):
     values = np.zeros((screen_x, screen_y, 3), uint)
-    time_s = time.time()
     for x in range(screen_x):
         for y in range(screen_y):
             point_color = calculate_point(x,y, top_left, h_step, v_step, max_iter)
             values[x][y] = point_color
 
-    time_e = time.time()
-    print(time_e - time_s)
     return values
