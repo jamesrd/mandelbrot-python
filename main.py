@@ -6,7 +6,7 @@ import mandelbrot as m
 "Settings"
 screen_x = 1024
 screen_y = 768
-max_iter = 512
+max_iter = 150
 m_center = -0.6+0j
 m_width = 1.8
 m_height = m_width * (screen_y/screen_x)
@@ -32,7 +32,7 @@ def zoom(mult):
     m_height = m_width * (screen_y/screen_x)
 
 def show_array(array_img):
-    screen = pg.display.set_mode(array_img.shape[:2], pg.HWSURFACE|pg.HWPALETTE, 8)
+    screen = pg.display.set_mode(array_img.shape[:2], pg.HWSURFACE, 32)
     surfarray.blit_array(screen, array_img)
     pg.display.flip()
 
@@ -85,28 +85,6 @@ def wait_click():
             raise SystemExit()
         elif e.type == pg.KEYDOWN:
             print(e.key)
-
-def get_c(x, y):
-    return top_left + complex(x * h_step, y * v_step)
-
-def check_point(c):
-    i = 1
-    z = 0+0j+c
-    while i <= max_iter:
-        i = i + 1
-        z = (z*z)+c
-        if abs(z.real) > 2 or abs(z.imag) > 2:
-            return i
-
-    return i
-
-def calculate_point(x, y):
-    c = get_c(x,y)
-    i = check_point(c)
-    return color_point(i)
-
-def color_point(i):
-    return i * color_step
 
 def render_mandelbrot():
     set_viewport()
