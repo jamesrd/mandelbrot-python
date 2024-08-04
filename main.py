@@ -5,20 +5,16 @@ import torch
 
 import mandelbrot as m
 
-"NEXT: color palette, figure out pygame surface works"
-
 "Settings"
-screen_x = 1024
-screen_y = 768
+target_device = "mps"
 max_iter = 100
 m_center = -0.6+0j
 m_width = 1.8
-m_height = m_width * (screen_y/screen_x)
 
 color_step = 255/(max_iter+1)
 
 def set_viewport():
-    global top_left, bottom_right, h_step, v_step
+    global top_left, bottom_right, h_step, v_step, screen_x, screen_y, m_width, m_height
     top_left = m_center - complex(m_width, m_height)
     bottom_right = m_center + complex(m_width, m_height)
     h_step = (bottom_right.real - top_left.real) / screen_x
@@ -62,7 +58,6 @@ def wait_click():
     while True:
         e = pg.event.wait()
         
-        # Force application to only advance when main button is released
         if e.type == pg.MOUSEBUTTONUP and e.button == pg.BUTTON_LEFT:
             if dragging:
                 end_drag = e.pos
@@ -85,7 +80,7 @@ def wait_click():
 
 def apply_colors(values):
     "try to do the mapping on the GPU or set a color palette?"
-    vc = torch.zeros(screen_x * screen_y, dtype=torch.int32).reshape(screen_x, screen_y).to("mps")
+    vc = torch.zeros(screen_x * screen_y, dtype=torch.int32).reshape(screen_x, screen_y).to(target_device)
     out_set = values > 0
     vc[out_set] = -1
     large_set = values > 10
@@ -96,21 +91,25 @@ def render_mandelbrot():
     set_viewport()
     time_s = time.time()
     values = m.render_mandelbrot(screen_x, screen_y, max_iter, top_left, h_step, v_step)
-    values_color = apply_colors(values)
-    va = values_color.numpy(force=True)
+    #values_color = apply_colors(values)
+    va = values.numpy(force=True)
+    #va = values_color.numpy(force=True)
     time_e = time.time()
     print("calc time: {}s".format(time_e-time_s))
     show_array(va)
 
 def main():
     pg.init()
-    global screen_x, screen_y
+    global screen_x, screen_y, m_width, m_height
     global screen
     screen = pg.display.set_mode((0,0), pg.FULLSCREEN, 8)
     (screen_x, screen_y) = pg.display.get_window_size()
+    m_height = m_width * (screen_y/screen_x)
     print(screen_x,screen_y)
     pg.display.set_caption("mandelbrot")
 
+    print(target_device)
+    m.target_device = target_device
     render_mandelbrot()
 
     wait_click()
