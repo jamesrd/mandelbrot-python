@@ -2,17 +2,17 @@ import torch
 
 target_device = "mps"
 
-def render_mandelbrot(screen_x, screen_y, max_iter, top_left, h_step, v_step):
+def render_mandelbrot(width, height, max_iter, x_range, y_range):
     global target_device
-    x = torch.linspace(top_left.real, top_left.real + screen_x * h_step, screen_x, dtype=torch.float32).to(target_device)
-    y = torch.linspace(top_left.imag, top_left.imag + screen_y * v_step, screen_y, dtype=torch.float32).to(target_device)
+    x = torch.linspace(x_range[0], x_range[1], width, dtype=torch.float32).to(target_device)
+    y = torch.linspace(y_range[0], y_range[1], height, dtype=torch.float32).to(target_device)
 
     cx, cy = torch.meshgrid([x,y])
 
-    zx = torch.zeros(screen_x * screen_y, dtype=torch.float32).to(target_device).resize_as_(cx)
-    zy = torch.zeros(screen_x * screen_y, dtype=torch.float32).to(target_device).resize_as_(cy)
+    zx = torch.zeros(width * height, dtype=torch.float32).to(target_device).resize_as_(cx)
+    zy = torch.zeros(width * height, dtype=torch.float32).to(target_device).resize_as_(cy)
 
-    k = torch.zeros(screen_x * screen_y, dtype=torch.uint8).reshape(screen_x,screen_y).to(target_device)
+    k = torch.zeros(width * height, dtype=torch.uint8).reshape(width,height).to(target_device)
 
     for i in range(max_iter):
         zx2 = zx**2
