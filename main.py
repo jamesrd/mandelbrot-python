@@ -14,6 +14,7 @@ m_center = (-0.6,0)
 m_width = 3.6
 m_height = m_width * (screen_y/screen_x)
 
+"Methods for translating screen coordinates to Mandelbrot set coordinates"
 
 def set_viewport():
     global screen_x, screen_y, m_width, m_height
@@ -53,10 +54,46 @@ def mouse_reframe(start, end):
     m_height = m_width * (screen_y/screen_x)
     render_mandelbrot()
 
+"Display methods"
+
+def build_palette(pmode):
+    global surf_palette
+    loop = range(256)
+    if pmode == 'bw':
+        # black & white:
+        surf_palette = [(255, 255, 255) for x in loop]
+        surf_palette[0] = (0,0,0)
+    elif pmode == 'red':
+        # red gradient
+        surf_palette = [(x,0,0) for x in loop]
+    elif pmode == 'green':
+        # green gradient
+        surf_palette = [(0,x,0) for x in loop]
+    elif pmode == 'blue':
+        # blue gradient
+        surf_palette = [(0,0,x) for x in loop]
+    elif pmode == 'greenblue':
+        surf_palette = [(0,x,x) for x in loop]
+    else:
+        # gray scale:
+        surf_palette = [(x,x,x) for x in loop]
+
 def show_array(array_img):
     surf =surfarray.make_surface(array_img)
+    surf.set_palette(surf_palette)
     screen.blit(surf, (0,0))
     pg.display.flip()
+
+def init_display():
+    global screen_x, screen_y, m_width, m_height
+    global screen
+    screen = pg.display.set_mode((screen_x,screen_y), 0, 32)
+    (screen_x, screen_y) = pg.display.get_window_size()
+    m_height = m_width * (screen_y/screen_x)
+    build_palette('greenblue')
+    pg.display.set_caption("mandelbrot")
+
+"UI interaction method"
 
 def wait_click():
     dragging = False
@@ -84,34 +121,14 @@ def wait_click():
             pg.quit()
             raise SystemExit()
 
-def apply_colors(values):
-    "try to do the mapping on the GPU or set a color palette?"
-    vc = torch.zeros(screen_x * screen_y, dtype=torch.int32).reshape(screen_x, screen_y).to(target_device)
-    out_set = values > 0
-    vc[out_set] = -1
-    large_set = values > 10
-    vc[large_set] = values[large_set] * 8
-    return vc
-
-def init_display():
-    global screen_x, screen_y, m_width, m_height
-    global screen
-    screen = pg.display.set_mode((screen_x,screen_y), 0, 8)
-    (screen_x, screen_y) = pg.display.get_window_size()
-    m_height = m_width * (screen_y/screen_x)
-    pg.display.set_caption("mandelbrot")
-
 def render_mandelbrot():
     global screen_x, screen_y
     top_left, bottom_right = set_viewport()
-    print(top_left, bottom_right)
     time_s = time.time()
     x_range = (top_left[0], bottom_right[0])
     y_range = (top_left[1], bottom_right[1])
     values = m.render_mandelbrot(screen_x, screen_y, max_iter, x_range, y_range)
-    #values_color = apply_colors(values)
-    va = values.numpy(force=True)
-    #va = values_color.numpy(force=True)
+    va = values.cpu().numpy()
     time_e = time.time()
     print("calc time: {}s".format(time_e-time_s))
     show_array(va)
